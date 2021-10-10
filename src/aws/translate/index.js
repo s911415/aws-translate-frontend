@@ -1,7 +1,6 @@
 import SupportedLang from './SupportedLanguagePairs.json';
 import LangLocale from './lang';
 import * as config from '../config';
-import {Translate,} from 'aws-sdk'; // v2
 
 const REGION = config.region();
 
@@ -17,7 +16,7 @@ function getClient() {
     if (!isInitializing) {
         isInitializing = true;
         return config.credential().then(cred => {
-            translateClient = new Translate();
+            translateClient = new AWS.Translate();
             return translateClient;
         });
     } else {

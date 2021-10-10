@@ -40,7 +40,6 @@
 import {validationMixin} from 'vuelidate';
 
 import {required,} from 'vuelidate/lib/validators';
-import {Translate,} from 'aws-sdk'; // v2
 
 export default {
     name: 'Auth',
@@ -88,7 +87,7 @@ export default {
                     secretAccessKey: this.secretAccessKey,
                 };
                 this.sending = true;
-                new Translate().translateText({
+                new AWS.Translate().translateText({
                     SourceLanguageCode: 'en',
                     TargetLanguageCode: 'en',
                     Text: 'AWS',
