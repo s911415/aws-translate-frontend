@@ -150,14 +150,17 @@ export default {
 
             let result = [];
             codes.forEach(code => {
-                if (code === 'auto') return;
                 result.push({
                     code,
                     localizedName: this.localizedLanguageNames[code]
                 });
             })
 
-            result = result.sort((a, b) => a.localizedName.localeCompare(b.localizedName));
+            result = result.sort((a, b) => {
+                if(a.code === 'auto') return -1;
+                if(b.code === 'auto') return 1;
+                return a.localizedName.localeCompare(b.localizedName);
+            });
             this.filteredLang = result;
         },
     },

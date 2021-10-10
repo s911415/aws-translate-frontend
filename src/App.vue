@@ -29,8 +29,14 @@
                                         v-if="!isUpdatingSourceLangNav"
                                 ></md-tab>
                             </md-tabs>
-                            <md-button class="md-icon-button" @click="openSearchLang('source')">
+
+                            <md-button class="md-icon-button translate-more" @click="openSearchLang('source')">
                                 <md-icon>more_horiz</md-icon>
+                            </md-button>
+
+                            <md-button class="button-selector" @click="openSearchLang('source')">
+                                <template v-if="sl==='auto'">{{autoLabel}}</template>
+                                <template v-else>{{localizedLanguageNames[sl]}}</template>
                             </md-button>
                         </div>
 
@@ -49,8 +55,13 @@
                                         :key="lang"
                                         :md-label="localizedLanguageNames[lang]"></md-tab>
                             </md-tabs>
-                            <md-button class="md-icon-button" @click="openSearchLang('target')">
+
+                            <md-button class="md-icon-button translate-more" @click="openSearchLang('target')">
                                 <md-icon>more_horiz</md-icon>
+                            </md-button>
+
+                            <md-button class="button-selector" @click="openSearchLang('target')">
+                                {{localizedLanguageNames[tl]}}
                             </md-button>
                         </div>
                     </div>
