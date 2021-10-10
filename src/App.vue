@@ -47,15 +47,35 @@
 
                     <div class="translator-io-wrapper">
                         <div class="translator-io">
-                        <textarea class="translator-source-input" :value="text"
-                                  @input="onTextInput"></textarea>
+                            <md-button class="md-icon-button text-clear-btn" v-if="text.length > 0" @click="clearInput">
+                                <md-icon>clear</md-icon>
+                            </md-button>
+                            <div class="translator-source-input-container">
+                                <textarea class="translator-source-input" :value="text"
+                                          :class="{'small-font': textRow > 3}"
+                                          :style="{'min-height': textHeight}"
+                                          rows="3"
+                                          ref="input-shadow"
+                                          autofocus
+                                          @input="onTextInput"></textarea>
+                                <textarea class="translator-source-input translator-source-input-shadow" :value="text"
+                                          ref="input-shadow"
+                                          :class="{'small-font': textRow > 3}"
+                                          @input="onTextInput"></textarea>
+                            </div>
                             <span class="text-limit">{{ text.length }} / {{ limit.maxWord }}</span>
                         </div>
-                        <div class="translator-io translator-target-output">{{ result }}</div>
+                        <div
+                            class="translator-io translator-target-output"
+                            :class="{'small-font': textRow > 3}"
+                        >{{ result }}
+                        </div>
                     </div>
                 </md-card-content>
             </md-card>
         </div>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
     </div>
 </template>
 <style>
@@ -101,7 +121,7 @@ body .md-theme-default :not(input):not(textarea)::selection {
     display: flex;
     align-items: center;
     margin-left: -8px;
-    margin-right: -8px;
+    width: calc(100% - 8px);
 }
 
 .translator-container nav button {
@@ -134,9 +154,10 @@ body .md-theme-default :not(input):not(textarea)::selection {
 
 .translator-io-wrapper {
     display: flex;
+    font-size: 24px;
 }
 
-.translator-io-wrapper input, .translator-io-wrapper textarea {
+.translator-io-wrapper textarea {
     display: block;
     outline: none;
     border: none;
@@ -147,6 +168,10 @@ body .md-theme-default :not(input):not(textarea)::selection {
     font-family: inherit;
 }
 
+.translator-io-wrapper .small-font {
+    font-size: smaller;
+}
+
 .translator-io-wrapper .translator-io {
     flex: 1;
     padding: 24px;
@@ -154,12 +179,11 @@ body .md-theme-default :not(input):not(textarea)::selection {
     overflow-wrap: break-word;
     word-break: break-word;
     word-wrap: break-word;
-    font-size: 24px;
     line-height: 1.5;
     position: relative;
 }
 
-.translator-io-wrapper .translator-target-input {
+.translator-io-wrapper .translator-target-output {
     padding-right: 64px;
 }
 
@@ -172,6 +196,34 @@ body .md-theme-default :not(input):not(textarea)::selection {
 .translator-io-wrapper .translator-target-output {
     border-left: 1px solid rgba(0, 0, 0, 0.12);
     background: rgb(245, 245, 245);
+}
+
+.translator-io-wrapper .text-clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 12px;
+}
+
+.translator-source-input-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.translator-source-input-container .translator-source-input-shadow {
+    height: 1px;
+    position: relative;
+    top: -999px;
+}
+</style>
+<style scoped>
+@media screen and (max-width: 1279px) {
+    .translator-container {
+        width: 100%;
+    }
+
+    .translator-card-wrapper {
+        border-radius: 0;
+    }
 }
 </style>
 
@@ -198,6 +250,8 @@ export default {
             localizedLanguageNames: {},
             detectedLang: null,
 
+            textRow: 3,
+            textHeight: '0px',
             isUpdatingSourceLangNav: false,
             isUpdatingTargetLangNav: false,
 
@@ -218,7 +272,6 @@ export default {
     },
     watch: {
         op() {
-            this.updateRoute();
         },
         sl(value) {
             if (value !== 'auto' && !this.top3SourceLang.includes(value)) {
@@ -231,7 +284,6 @@ export default {
             }
 
             this.updateTranslateResult();
-            this.updateRoute();
         },
         tl(value) {
             if (!this.top3TargetLang.includes(value)) {
@@ -243,9 +295,14 @@ export default {
                 this.triggerTargetNavUpdated();
             }
             this.updateTranslateResult();
-            this.updateRoute();
         },
         text() {
+            let lines = this.text.split('\n').length;
+            this.textRow = lines > 3 ? lines : 3;
+            this.$nextTick(() => {
+                this.textHeight = this.$refs["input-shadow"].scrollHeight + 'px';
+            });
+
             // TODO: check difference to replace or push
             let mode = 'replace';
             if (this.textChangeTimer) clearTimeout(this.textChangeTimer);
@@ -254,6 +311,14 @@ export default {
                 this.updateTranslateResult();
                 this.updateRoute(mode);
             }, DELAY);
+        },
+        $route(to, from) {
+            let keys = [
+                'sl', 'tl', 'text', 'op'
+            ];
+            keys.forEach(k => {
+                if (to.query[k] && to.query[k] !== this[k]) this[k] = to.query[k];
+            });
         }
     },
     mounted() {
@@ -309,12 +374,14 @@ export default {
             if (!value) return;
 
             this.sl = value;
+            this.updateRoute('push');
         },
 
         onTargetLangChanged(value) {
             if (!value) return;
 
             this.tl = value;
+            this.updateRoute('push');
         },
 
         updateRoute(mode = 'replace') {
@@ -328,18 +395,16 @@ export default {
                 },
             };
 
+            // skip same route
+            if (JSON.stringify(params.query) === JSON.stringify(this.$route.query)) {
+                return;
+            }
+
             let p = null;
             if (mode === 'replace') {
                 p = this.$router.replace(params);
             } else if (mode === 'push') {
                 p = this.$router.push(params);
-            }
-
-            if (p) {
-                p.catch(e => {
-                    if (e.name === 'NavigationDuplicated') return;
-                    throw e;
-                });
             }
         },
 
@@ -353,14 +418,21 @@ export default {
                 this.tl = tmp;
             }
             this.text = this.result;
+            this.updateRoute('push');
         },
 
         onTextInput(e) {
-            this.text = e.target.value;
+            let text = e.target.value;
+            if (text.length > this.limit.maxWord) text = text.substr(0, this.limit.maxWord);
+            this.text = text;
         },
 
         updateTranslateResult() {
-            if(!this.text) return;
+            if (!this.text) {
+                this.result = '';
+                this.detectedLang = '';
+                return;
+            }
             TranslateClient.translateText(this.text, this.sl, this.tl)
                 .then(r => {
                     if (this.sl === 'auto') {
@@ -370,6 +442,10 @@ export default {
                     }
 
                     this.result = r.TranslatedText;
+
+                    this.$nextTick(() => {
+                        this.$refs.langSourceTab.setIndicatorStyles();
+                    });
                 });
         },
 
@@ -379,9 +455,7 @@ export default {
             this.isUpdatingSourceLangNav = true;
             this.$nextTick(() => {
                 this.isUpdatingSourceLangNav = false;
-                this.$nextTick(() => {
-                    this.$refs.langSourceTab.MdTabs = {...this.$refs.langSourceTab.MdTabs};
-                })
+                this.$refs.langSourceTab.setIndicatorStyles();
             });
         },
 
@@ -389,8 +463,13 @@ export default {
             this.isUpdatingTargetLangNav = true;
             this.$nextTick(() => {
                 this.isUpdatingTargetLangNav = false;
-                this.$refs.langTargetTab.MdTabs = {...this.$refs.langTargetTab.MdTabs};
+                this.$refs.langTargetTab.setIndicatorStyles();
             });
+        },
+
+        clearInput() {
+            this.text = '';
+            this.result = '';
         },
     }
 }

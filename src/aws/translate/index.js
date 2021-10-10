@@ -17,10 +17,7 @@ function getClient() {
     if (!isInitializing) {
         isInitializing = true;
         return config.credential().then(cred => {
-            translateClient = new Translate({
-                region: REGION,
-                credentials: cred,
-            });
+            translateClient = new Translate();
             return translateClient;
         });
     } else {
