@@ -158,6 +158,10 @@ body .md-theme-default :not(input):not(textarea)::selection {
 
 }
 
+.md-empty-state-container {
+    width: 100%;
+}
+
 .main-container {
     width: 1280px;
 }

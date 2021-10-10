@@ -1,12 +1,20 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import Index from '../components/Index';
+import Auth from '../components/Auth';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
     name: 'Home',
+    component: Index,
+  },
+  {
+    path: '/auth',
+    name: 'Auth',
+    component: Auth,
   },
 ];
 
