@@ -4,12 +4,18 @@ import router from './router';
 import 'vue-material/dist/vue-material.min.css';
 import 'vue-material/dist/theme/default.css';
 import './assets/fonts.css';
-import { MdButton, MdTabs, MdIcon, MdCard,  } from 'vue-material/dist/components';
+import './assets/style.css';
+
+import {MdButton, MdCard, MdIcon, MdTabs, MdDialog, MdField, MdList, MdDivider} from 'vue-material/dist/components';
 
 Vue.use(MdTabs);
 Vue.use(MdButton);
 Vue.use(MdIcon);
 Vue.use(MdCard);
+Vue.use(MdDialog);
+Vue.use(MdField);
+Vue.use(MdList);
+Vue.use(MdDivider);
 
 Vue.config.productionTip = false;
 

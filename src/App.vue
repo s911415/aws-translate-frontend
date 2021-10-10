@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <div class="translator-container">
+        <div class="main-container translator-container">
             <nav>
                 <md-button
                     class="md-primary" value="'translate'" @click="onOperationChanged('translate')"
@@ -16,33 +16,43 @@
             <md-card class="translator-card-wrapper">
                 <md-card-content>
                     <div class="translator-langs-header">
-                        <md-tabs class="translator-lang-selector translator-source"
-                                 @md-changed="onSourceLangChanged" ref="langSourceTab"
-                                 @md-active-tab="sl"
-                        >
-                            <md-tab :md-label="autoLabel" id="auto"></md-tab>
-                            <md-tab v-for="lang in top3SourceLang"
-                                    :id="lang"
-                                    :key="lang"
-                                    :md-label="localizedLanguageNames[lang]"
-                                    v-if="!isUpdatingSourceLangNav"
-                            ></md-tab>
-                        </md-tabs>
+                        <div class="translator-lang-selector-container">
+                            <md-tabs class="translator-lang-selector translator-source"
+                                     @md-changed="onSourceLangChanged" ref="langSourceTab"
+                                     @md-active-tab="sl"
+                            >
+                                <md-tab :md-label="autoLabel" id="auto"></md-tab>
+                                <md-tab v-for="lang in top3SourceLang"
+                                        :id="lang"
+                                        :key="lang"
+                                        :md-label="localizedLanguageNames[lang]"
+                                        v-if="!isUpdatingSourceLangNav"
+                                ></md-tab>
+                            </md-tabs>
+                            <md-button class="md-icon-button" @click="openSearchLang('source')">
+                                <md-icon>more_horiz</md-icon>
+                            </md-button>
+                        </div>
 
                         <md-button class="md-icon-button" @click="swapLang">
                             <md-icon>swap_horiz</md-icon>
                         </md-button>
 
-                        <md-tabs class="translator-lang-selector translator-target"
-                                 @md-changed="onTargetLangChanged" ref="langTargetTab"
-                                 @md-active-tab="tl"
-                        >
-                            <md-tab v-for="lang in top3TargetLang"
-                                    v-if="!isUpdatingTargetLangNav"
-                                    :id="lang"
-                                    :key="lang"
-                                    :md-label="localizedLanguageNames[lang]"></md-tab>
-                        </md-tabs>
+                        <div class="translator-lang-selector-container">
+                            <md-tabs class="translator-lang-selector translator-target"
+                                     @md-changed="onTargetLangChanged" ref="langTargetTab"
+                                     @md-active-tab="tl"
+                            >
+                                <md-tab v-for="lang in top3TargetLang"
+                                        v-if="!isUpdatingTargetLangNav"
+                                        :id="lang"
+                                        :key="lang"
+                                        :md-label="localizedLanguageNames[lang]"></md-tab>
+                            </md-tabs>
+                            <md-button class="md-icon-button" @click="openSearchLang('target')">
+                                <md-icon>more_horiz</md-icon>
+                            </md-button>
+                        </div>
                     </div>
 
                     <div class="translator-io-wrapper">
@@ -55,7 +65,7 @@
                                           :class="{'small-font': textRow > 3}"
                                           :style="{'min-height': textHeight}"
                                           rows="3"
-                                          ref="input-shadow"
+                                          ref="input"
                                           autofocus
                                           @input="onTextInput"></textarea>
                                 <textarea class="translator-source-input translator-source-input-shadow" :value="text"
@@ -74,161 +84,23 @@
                 </md-card-content>
             </md-card>
         </div>
+
+        <lang-dialog
+            :active.sync="selectLangDialog.show"
+            :localized-language-names.sync="localizedLanguageNames"
+            :available-lang-list.sync="selectLangDialog.availableLangList"
+            :value.sync="selectLangDialog.value"
+            @select="onLangSelected"
+        />
+
         <p>&nbsp;</p>
         <p>&nbsp;</p>
     </div>
 </template>
-<style>
-body {
-    margin: 0;
-}
-
-.translator-langs-header > .translator-lang-selector .md-button {
-    font-size: 14px;
-}
-
-body .md-theme-default :not(input):not(textarea)::selection {
-    background: #3297FD !important;
-}
-</style>
-
-<style scoped type="text/scss">
-#app {
-    position: relative;
-}
-
-#app:before {
-    background: #fafafa;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    content: '';
-    display: block;
-    height: 162px;
-    overflow: hidden;
-    width: 100%;
-    z-index: -1;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-.translator-container {
-    margin: 0 auto;
-    width: 1280px;
-}
-
-.translator-container nav {
-    height: 68px;
-    display: flex;
-    align-items: center;
-    margin-left: -8px;
-    width: calc(100% - 8px);
-}
-
-.translator-container nav button {
-    border: 1px solid rgb(218, 220, 224);
-}
-
-.translator-container button.active {
-    background-color: rgba(66, 133, 244, 0.12);
-    border-color: rgb(218, 220, 224);
-}
-
-.translator-card-wrapper {
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.translator-card-wrapper > .md-card-content {
-    padding: 0;
-}
-
-.translator-langs-header {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.translator-langs-header > .translator-lang-selector {
-    flex: 1;
-}
-
-.translator-io-wrapper {
-    display: flex;
-    font-size: 24px;
-}
-
-.translator-io-wrapper textarea {
-    display: block;
-    outline: none;
-    border: none;
-    resize: none;
-    width: 100%;
-    font-size: inherit;
-    line-height: inherit;
-    font-family: inherit;
-}
-
-.translator-io-wrapper .small-font {
-    font-size: smaller;
-}
-
-.translator-io-wrapper .translator-io {
-    flex: 1;
-    padding: 24px;
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    word-wrap: break-word;
-    line-height: 1.5;
-    position: relative;
-}
-
-.translator-io-wrapper .translator-target-output {
-    padding-right: 64px;
-}
-
-.translator-io-wrapper .text-limit {
-    text-align: right;
-    display: block;
-    font-size: 12px;
-}
-
-.translator-io-wrapper .translator-target-output {
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
-    background: rgb(245, 245, 245);
-}
-
-.translator-io-wrapper .text-clear-btn {
-    position: absolute;
-    right: 8px;
-    top: 12px;
-}
-
-.translator-source-input-container {
-    position: relative;
-    overflow: hidden;
-}
-
-.translator-source-input-container .translator-source-input-shadow {
-    height: 1px;
-    position: relative;
-    top: -999px;
-}
-</style>
-<style scoped>
-@media screen and (max-width: 1279px) {
-    .translator-container {
-        width: 100%;
-    }
-
-    .translator-card-wrapper {
-        border-radius: 0;
-    }
-}
-</style>
 
 <script>
 import TranslateClient from './aws/translate';
+import LangDialog from './components/LangDialog';
 
 const DELAY = 500;
 const TOP_3_SOURCE_KEY = 't3-src';
@@ -236,6 +108,9 @@ const TOP_3_TARGET_KEY = 't3-target';
 
 export default {
     name: 'App',
+    components: {
+        LangDialog,
+    },
     data() {
         return {
             op: 'translate',
@@ -248,6 +123,7 @@ export default {
             top3SourceLang: [],
             top3TargetLang: [],
             localizedLanguageNames: {},
+            supportedLanguagePairs: {},
             detectedLang: null,
 
             textRow: 3,
@@ -257,6 +133,12 @@ export default {
 
             limit: {
                 maxWord: 5000,
+            },
+
+            selectLangDialog: {
+                value: null,
+                show: false,
+                availableLangList: [],
             },
         };
     },
@@ -287,13 +169,14 @@ export default {
         },
         tl(value) {
             if (!this.top3TargetLang.includes(value)) {
-                this.top3TargetLang = [value, ...this.top3TargetLang.slice(1)];
+                this.top3TargetLang = [value, ...this.top3TargetLang.slice(0, 2)];
                 this.saveTop3Lang();
             }
             if (this.$refs.langTargetTab.activeTab !== value) {
                 this.$refs.langTargetTab.activeTab = value;
                 this.triggerTargetNavUpdated();
             }
+
             this.updateTranslateResult();
         },
         text() {
@@ -327,6 +210,10 @@ export default {
         TranslateClient.localizedLanguageNames(navigator.languages)
             .then(localizedLanguageNames => {
                 this.localizedLanguageNames = localizedLanguageNames;
+            });
+        TranslateClient.listSupportedLanguagePairs()
+            .then(supportedLanguagePairs => {
+                this.supportedLanguagePairs = supportedLanguagePairs;
             });
 
         this.$nextTick(() => {
@@ -385,6 +272,7 @@ export default {
         },
 
         updateRoute(mode = 'replace') {
+            this.$refs['input'].focus();
             let params = {
                 name: 'Home',
                 query: {
@@ -471,6 +359,36 @@ export default {
             this.text = '';
             this.result = '';
         },
+
+        openSearchLang(type) {
+            let currentLang, codes;
+            if (type === 'source') {
+                currentLang = this.sl;
+                codes = Object.keys(this.supportedLanguagePairs);
+            } else if (type === 'target') {
+                currentLang = this.tl;
+                codes = this.supportedLanguagePairs[this.sl];
+            }
+
+            this.selectLangDialog = {
+                value: currentLang,
+                type,
+                availableLangList: codes,
+                show: true,
+            };
+        },
+
+        onLangSelected(value) {
+            let type = this.selectLangDialog.type;
+            this.selectLangDialog.show = false;
+            if (value === null) return;
+
+            if (type === 'source') {
+                this.sl = value;
+            } else if (type === 'target') {
+                this.tl = value;
+            }
+        }
     }
 }
 </script>
