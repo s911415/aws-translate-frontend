@@ -60,7 +60,7 @@
                         </md-button>
                         <div class="translator-source-input-container">
                                 <textarea class="translator-source-input" :value="text"
-                                          :class="{'small-font': textRow > 3}"
+                                          :class="{'small-font': showInSmallSize}"
                                           :style="{'min-height': textHeight}"
                                           rows="3"
                                           ref="input"
@@ -146,7 +146,10 @@ export default {
             }
 
             return autoLabel;
-        }
+        },
+        showInSmallSize() {
+            return this.textRow > 3 || this.text.length > 100;
+        },
     },
     watch: {
         op() {
