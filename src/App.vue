@@ -40,13 +40,17 @@ export default {
     methods: {
         checkCred() {
             if(this.$route.name === 'Auth') return;
-            if (
-                !(localStorage['AWS_ACCESS_KEY_ID'] && localStorage['AWS_SECRET_ACCESS_KEY']) &&
-                !(window.AWS && window.AWS.config && window.AWS.config.credentials)
-            ) {
-                this.$router.push({
-                    name: 'Auth',
-                });
+            if(window.AWS && window.AWS.CognitoIdentity) {
+                return;
+            }else {
+                if (
+                    !(localStorage['AWS_ACCESS_KEY_ID'] && localStorage['AWS_SECRET_ACCESS_KEY']) &&
+                    !(window.AWS && window.AWS.config && window.AWS.config.credentials)
+                ) {
+                    this.$router.push({
+                        name: 'Auth',
+                    });
+                }
             }
         },
     }
