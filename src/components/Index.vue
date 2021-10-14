@@ -125,6 +125,9 @@ export default {
             isUpdatingSourceLangNav: false,
             isUpdatingTargetLangNav: false,
 
+            slFirstChange: true,
+            tlFirstChange: true,
+
             limit: {
                 maxWord: 5000,
             },
@@ -178,15 +181,17 @@ export default {
 
             this.updateTranslateResult();
         },
-        text() {
+        text(newValue, oldValue) {
             let lines = this.text.split('\n').length;
             this.textRow = lines > 3 ? lines : 3;
             this.$nextTick(() => {
                 this.textHeight = this.$refs["input-shadow"].scrollHeight + 'px';
             });
 
-            // TODO: check difference to replace or push
-            let mode = 'replace';
+            let mode = 'push';
+            if (newValue.indexOf(oldValue) !== -1) {
+                mode = 'replace';
+            }
             if (this.textChangeTimer) clearTimeout(this.textChangeTimer);
             this.textChangeTimer = setTimeout(() => {
                 this.textChangeTimer = 0;
@@ -199,7 +204,7 @@ export default {
                 'sl', 'tl', 'text', 'op'
             ];
             keys.forEach(k => {
-                if (to.query[k] && to.query[k] !== this[k]) this[k] = to.query[k];
+                if (to.query[k] !== undefined && to.query[k] !== this[k]) this[k] = to.query[k];
             });
         }
     },
@@ -259,14 +264,22 @@ export default {
             if (!value) return;
 
             this.sl = value;
-            this.updateRoute('push');
+            if (this.slFirstChange) {
+                this.slFirstChange = false;
+            } else {
+                this.updateRoute('push');
+            }
         },
 
         onTargetLangChanged(value) {
             if (!value) return;
 
             this.tl = value;
-            this.updateRoute('push');
+            if (this.tlFirstChange) {
+                this.tlFirstChange = false;
+            } else {
+                this.updateRoute('push');
+            }
         },
 
         updateRoute(mode = 'replace') {
